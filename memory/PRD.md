@@ -1,12 +1,12 @@
 # PRD: Aurum Quant - XAUUSD Trading Algorithm Showcase
 
 ## Original Problem Statement
-Build a premium, modern, highly polished website that showcases the performance and credibility of an automated XAUUSD (Gold) MetaTrader 5 trading algorithm. The website should look like a professional fintech / prop-firm / quant trading product landing page combined with a performance analytics dashboard.
+Build a premium fintech website showcasing XAUUSD trading algorithm performance with a **live demo feature** that spins up a simulated market and shows the algorithm making real-time trading decisions with an "Algorithm Thinking" panel.
 
 ## User Choices
 - **Design**: Premium dark mode fintech dashboard
 - **Colors**: Black/charcoal background with Gold, Emerald, Blue accents
-- **Features**: All advanced features enabled (charts, analytics, trade tables)
+- **Features**: All advanced features + Live Demo
 - **Brand**: Aurum Quant
 
 ## Architecture
@@ -21,86 +21,76 @@ Build a premium, modern, highly polished website that showcases the performance 
 ### File Structure
 ```
 /app/frontend/src/
-├── App.js                    # Main application
-├── index.css                 # Global styles (glassmorphism, gold effects)
+├── App.js                    # Main application with demo state
+├── index.css                 # Global styles
 ├── data/
-│   └── mockData.js           # All realistic mock data
+│   └── mockData.js           # Static mock data
+├── engine/
+│   ├── MarketSimulator.js    # Real-time market simulation
+│   └── TradingAlgorithm.js   # Algorithm logic (mirrors MQL5 EA)
 └── components/
-    ├── Navbar.jsx            # Floating navigation
-    ├── Hero.jsx              # Hero section with key stats
-    ├── PerformanceKPIs.jsx   # Animated KPI cards
-    ├── EquityCurve.jsx       # Interactive equity chart
-    ├── DrawdownAnalytics.jsx # Risk analytics section
-    ├── StrategyOverview.jsx  # 6-step strategy flow
-    ├── TradeAnalytics.jsx    # Distribution charts
-    ├── RecentTrades.jsx      # Trade log table
-    ├── ComparisonTable.jsx   # vs Manual/Signals/Martingale
-    ├── Testimonials.jsx      # User feedback
-    ├── FAQ.jsx               # Accordion FAQ
-    ├── Footer.jsx            # CTA and contact
-    └── FloatingStats.jsx     # Real-time stats widget
+    ├── LiveDemo.jsx          # Live demo modal with thinking panel
+    ├── Hero.jsx              # Updated with "View Live Demo" button
+    └── ... (other components)
 ```
 
 ## What's Been Implemented (Jan 2026)
 
-### Sections ✅
-- [x] Hero section with animated particles & status banner
-- [x] Performance KPIs with animated counters (8 metrics)
-- [x] Interactive equity curve chart with timeframe toggles
-- [x] Drawdown & risk analytics section
-- [x] Strategy overview with 6-step flow cards
-- [x] Trade distribution charts (pie, bar)
-- [x] Recent trades table with pagination (18 trades)
-- [x] Comparison table (vs Manual/Signals/Martingale)
-- [x] Testimonials section
-- [x] FAQ accordion (9 questions)
-- [x] Footer with email capture CTA
+### Live Demo Feature ✅ (NEW)
+- [x] **Market Simulator**: Generates realistic XAUUSD price movements
+- [x] **Trading Algorithm**: JavaScript version of MQL5 EA logic
+  - RSI calculation and analysis
+  - Support/Resistance detection (swing highs/lows)
+  - EMA 200/50 trend filter
+  - Candle pattern confirmation
+  - Risk management (0.75% per trade)
+  - Break-even and trailing stop logic
+- [x] **Algorithm Thinking Panel**: Real-time decision logs
+  - Shows what the algorithm is analyzing
+  - Explains why it takes or skips trades
+  - Displays indicator values and conditions
+  - Color-coded thought categories
+- [x] **Interactive Controls**:
+  - Play/Pause simulation
+  - Speed controls (1x, 2x, 5x, 10x)
+  - Real-time price chart with S/R levels
+  - Indicator cards (RSI, EMA, Support, Resistance, Spread)
+  - Position tracking and P&L display
+- [x] **"View Live Demo" button** in hero section
+
+### Previous Features ✅
+- [x] Hero section with animated particles
+- [x] Performance KPIs with animated counters
+- [x] Interactive equity curve chart
+- [x] Drawdown & risk analytics
+- [x] Strategy overview with flow cards
+- [x] Trade distribution charts
+- [x] Recent trades table
+- [x] Comparison table
+- [x] Testimonials
+- [x] FAQ accordion
+- [x] Footer with email capture
 - [x] Floating stats widget
 
-### Design Features ✅
-- [x] Premium dark mode (#020617 background)
-- [x] Gold accents (#D4AF37)
-- [x] Glassmorphism cards with backdrop blur
-- [x] Framer Motion animations
-- [x] Smooth scroll behavior
-- [x] Responsive design (desktop/tablet/mobile)
-- [x] Custom scrollbar
-- [x] Gold glow effects
-
-### Mock Data ✅
-- Performance KPIs (67.4% return, 64.8% win rate, etc.)
-- 365-day equity curve data
-- 18 recent trade entries
-- Monthly returns data
-- Session performance data
-- Weekday distribution data
-
 ## Testing Results
-- **Success Rate**: 90%
-- **Passed**: Hero, KPIs, Charts, Tables, FAQ, Forms, Responsive
-- **Fixed**: Navigation z-index issues
+- **Live Demo Feature**: 95% pass rate
+- All major functionality working
 
 ## Backlog (P1/P2)
 
 ### P1 - Future Enhancements
-- [ ] Connect to live MT5 data via API
-- [ ] MyFXBook integration
-- [ ] Real-time price ticker
-- [ ] User authentication for premium analytics
+- [ ] Connect live demo to actual MT5 via websocket
+- [ ] Record and replay actual trading sessions
+- [ ] Multiple algorithm presets (aggressive/conservative)
 
 ### P2 - Nice to Have
-- [ ] CSV export of trade data
-- [ ] PDF performance report generation
-- [ ] Dark/light theme toggle
-- [ ] Multi-language support
-
-## Related Files
-
-### MQL5 Expert Advisor
-Located in `/app/mql5/`:
-- `XAUUSD_RSI_SR_EA.mq5` - Trading algorithm (v1.10)
-- `README.md` - Installation guide
-- `QUICK_REFERENCE.md` - Quick start card
+- [ ] Share demo state via URL
+- [ ] Download demo session as report
+- [ ] Sound effects for trade execution
 
 ## URLs
 - **Preview**: https://gold-ea-trader-3.preview.emergentagent.com
+
+## Related Files (MQL5 EA)
+- `/app/mql5/XAUUSD_RSI_SR_EA.mq5` - Production EA v1.10
+- `/app/mql5/README.md` - Installation guide
