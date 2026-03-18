@@ -1,52 +1,63 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
-
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+import React from 'react';
+import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import PerformanceKPIs from './components/PerformanceKPIs';
+import EquityCurve from './components/EquityCurve';
+import DrawdownAnalytics from './components/DrawdownAnalytics';
+import StrategyOverview from './components/StrategyOverview';
+import TradeAnalytics from './components/TradeAnalytics';
+import RecentTrades from './components/RecentTrades';
+import ComparisonTable from './components/ComparisonTable';
+import Testimonials from './components/Testimonials';
+import FAQ from './components/FAQ';
+import Footer from './components/Footer';
+import FloatingStats from './components/FloatingStats';
+import './index.css';
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className="min-h-screen bg-[#020617] text-white overflow-x-hidden">
+      {/* Navigation */}
+      <Navbar />
+      
+      {/* Main Content */}
+      <main>
+        {/* Hero Section */}
+        <Hero />
+        
+        {/* Performance KPIs */}
+        <PerformanceKPIs />
+        
+        {/* Equity Curve Chart */}
+        <EquityCurve />
+        
+        {/* Drawdown & Risk Analytics */}
+        <DrawdownAnalytics />
+        
+        {/* Strategy Overview */}
+        <StrategyOverview />
+        
+        {/* Trade Distribution Analytics */}
+        <TradeAnalytics />
+        
+        {/* Recent Trades Table */}
+        <RecentTrades />
+        
+        {/* Comparison Table */}
+        <ComparisonTable />
+        
+        {/* Testimonials */}
+        <Testimonials />
+        
+        {/* FAQ */}
+        <FAQ />
+        
+        {/* Footer with CTA */}
+        <Footer />
+      </main>
+      
+      {/* Floating Stats Widget */}
+      <FloatingStats />
     </div>
   );
 }
