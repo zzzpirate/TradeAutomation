@@ -1,0 +1,107 @@
+{
+  "brand_identity": {
+    "name": "Aurum Quant",
+    "tagline": "Institutional-Grade XAUUSD Algorithmic Trading",
+    "description": "Premium automated trading infrastructure for serious investors. High-frequency precision meets institutional reliability.",
+    "emotional_tone": "Luxury, Precision, Authority, Wealth, Technological",
+    "archetype": "The Performance Pro (Elite) + Jewel & Luxury (Premium)"
+  },
+  "theme": {
+    "mode": "dark",
+    "background_strategy": "Deep Obsidian Navy",
+    "colors": {
+      "primary": "#D4AF37",
+      "primary_foreground": "#000000",
+      "secondary": "#3B82F6",
+      "accent": "#10B981",
+      "background": "#020617",
+      "surface": "#0F172A",
+      "text_primary": "#F8FAFC",
+      "text_secondary": "#94A3B8",
+      "border": "rgba(255, 255, 255, 0.1)",
+      "chart_profit": "#10B981",
+      "chart_loss": "#EF4444",
+      "chart_grid": "#1E293B"
+    }
+  },
+  "typography": {
+    "headings": {
+      "family": "Playfair Display, serif",
+      "weight": "700",
+      "style": "tracking-tight"
+    },
+    "body": {
+      "family": "Inter, sans-serif",
+      "weight": "400",
+      "style": "tracking-normal"
+    },
+    "mono": {
+      "family": "JetBrains Mono, monospace",
+      "weight": "500",
+      "usage": "Data points, pricing, tickers"
+    }
+  },
+  "layout_strategy": {
+    "grid_system": "Bento Grid (Mode A for Landing, Mode B for Dashboard sections)",
+    "spacing": "Generous (2x standard)",
+    "container_padding": "p-6 or p-8 for cards",
+    "border_radius": "rounded-xl",
+    "glassmorphism": "bg-slate-950/50 backdrop-blur-xl border border-white/10 shadow-2xl"
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#D4AF37] text-black hover:bg-[#B5952F] font-semibold rounded-full px-8 py-6 shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all hover:scale-105",
+      "secondary": "bg-white/5 text-white border border-white/10 hover:bg-white/10 rounded-full px-8 py-6 backdrop-blur-md"
+    },
+    "cards": {
+      "style": "Glassmorphism",
+      "classes": "bg-slate-900/40 backdrop-blur-md border border-white/5 rounded-2xl shadow-xl hover:border-[#D4AF37]/30 transition-colors duration-300"
+    },
+    "charts": {
+      "library": "Recharts",
+      "style": "Minimalist, gradient fills, hide grid lines or make them very subtle (#1E293B)",
+      "tooltip": "Custom glass tooltip"
+    },
+    "navigation": {
+      "style": "Floating glass pill",
+      "classes": "fixed top-6 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-xl border border-white/10 rounded-full px-6 py-3 z-50 flex items-center gap-6"
+    }
+  },
+  "image_urls": {
+    "hero_background": "https://images.unsplash.com/photo-1760978632014-f799595497af?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "trader_portrait": "https://images.unsplash.com/photo-1624670319970-37aa780d4874?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "abstract_gold": "https://images.unsplash.com/photo-1760978632119-5069b6c9fb68?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "logo_placeholder": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Gold_bullion_icon.svg/1200px-Gold_bullion_icon.svg.png"
+  },
+  "visual_enhancers": {
+    "gradients": "Radial gradient overlays (gold/blue) to create depth in dark backgrounds",
+    "noise": "Subtle grain overlay (opacity 0.03) on backgrounds",
+    "borders": "1px solid border with 10% opacity white, creating a 'cut glass' look",
+    "shadows": "Colored shadows matching the accent color (e.g., gold glow behind gold buttons)"
+  },
+  "animations": {
+    "hero_text": "Staggered fade-up (Framer Motion)",
+    "numbers": "Count-up animation for KPIs",
+    "charts": "Draw-line animation on scroll",
+    "hover": "Scale 1.02 + Border highlight"
+  },
+  "universal_guidelines": [
+    "Do NOT use pure black (#000000) for backgrounds; use #020617 or #0A0A0A.",
+    "Do NOT use standard blue for links; use Gold or Electric Blue.",
+    "Ensure all text has sufficient contrast (APCA standards).",
+    "Use 'Inter' for body text but 'Playfair Display' for Headings to convey luxury.",
+    "All data/numbers must use 'JetBrains Mono'.",
+    "Glassmorphism effects must have a 1px border (white/10) to define edges.",
+    "Use generous padding (py-24, py-32) between sections.",
+    "Interactive elements must have clear hover states (brightness up or glow)."
+  ],
+  "instructions_to_main_agent": [
+    "Install 'lucide-react', 'recharts', 'framer-motion', 'clsx', 'tailwind-merge' if not present.",
+    "Create a reusable 'GlassCard' component.",
+    "Implement the 'Hero' section with the provided background image and a parallax effect.",
+    "Build the 'Equity Curve' chart using Recharts with a gold gradient stroke.",
+    "Ensure the 'Recent Trades' table looks like a Bloomberg terminal (dense but legible, mono font).",
+    "Add a 'Risk Management' section emphasizing low drawdown (key for institutional trust).",
+    "Use the provided image URLs for the respective sections."
+  ]
+}
