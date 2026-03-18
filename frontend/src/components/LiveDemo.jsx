@@ -204,11 +204,12 @@ const LiveDemo = ({ onClose }) => {
 
         <div className="flex items-center gap-3">
           {/* Speed */}
-          <div className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1">
+          <div className="flex items-center gap-1.5 bg-white/5 rounded-lg p-1" data-testid="speed-controls">
             {[1, 2, 5, 10].map(s => (
               <button
                 key={s}
                 onClick={() => setSpeed(s)}
+                data-testid={`speed-${s}x`}
                 className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
                   speed === s ? 'bg-[#D4AF37] text-black' : 'text-slate-400 hover:text-white'
                 }`}
@@ -220,6 +221,7 @@ const LiveDemo = ({ onClose }) => {
 
           <button
             onClick={() => setIsRunning(!isRunning)}
+            data-testid="play-pause-btn"
             className={`p-2.5 rounded-lg transition-colors ${
               isRunning ? 'bg-orange-500 text-white' : 'bg-emerald-500 text-white'
             }`}
@@ -229,6 +231,7 @@ const LiveDemo = ({ onClose }) => {
 
           <button
             onClick={onClose}
+            data-testid="close-demo-btn"
             className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
           >
             <X size={18} />
@@ -245,7 +248,7 @@ const LiveDemo = ({ onClose }) => {
             <div className="flex items-center gap-6">
               <div>
                 <div className="text-xs text-slate-500 mb-1">XAUUSD</div>
-                <div className="text-3xl font-mono font-bold tabular-nums">${currentTick.bid.toFixed(2)}</div>
+                <div className="text-3xl font-mono font-bold tabular-nums" data-testid="current-price">${currentTick.bid.toFixed(2)}</div>
               </div>
               <div className="flex gap-4 text-sm">
                 <div>
@@ -264,24 +267,24 @@ const LiveDemo = ({ onClose }) => {
             </div>
             
             {/* Session Stats Summary */}
-            <div className="flex gap-4 text-sm">
+            <div className="flex gap-4 text-sm" data-testid="session-stats">
               <div className="text-center">
                 <div className="text-slate-500 text-xs">Balance</div>
-                <div className={`font-mono font-bold ${balance >= 10000 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <div className={`font-mono font-bold ${balance >= 10000 ? 'text-emerald-400' : 'text-red-400'}`} data-testid="balance">
                   ${balance.toFixed(2)}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-slate-500 text-xs">Trades</div>
-                <div className="font-mono font-bold">{stats.trades}</div>
+                <div className="font-mono font-bold" data-testid="total-trades">{stats.trades}</div>
               </div>
               <div className="text-center">
                 <div className="text-slate-500 text-xs">Win Rate</div>
-                <div className="font-mono font-bold">{winRate}%</div>
+                <div className="font-mono font-bold" data-testid="win-rate">{winRate}%</div>
               </div>
               <div className="text-center">
                 <div className="text-slate-500 text-xs">P&L</div>
-                <div className={`font-mono font-bold ${stats.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <div className={`font-mono font-bold ${stats.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`} data-testid="total-pnl">
                   {stats.pnl >= 0 ? '+' : ''}${stats.pnl.toFixed(2)}
                 </div>
               </div>
