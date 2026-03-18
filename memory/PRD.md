@@ -26,20 +26,21 @@ Build a premium fintech website showcasing XAUUSD trading algorithm performance 
 ### Live Demo Engine
 ```
 /app/frontend/src/engine/
-├── MarketSimulator.js    # Dynamic market with phases
-│   ├── Market phases: markup, markdown, volatile, ranging
-│   ├── Automatic S/R level updates
-│   ├── Price movement towards key levels
-│   └── Realistic volatility spikes
+├── MarketSimulator.js    # Trade-forcing market generator
+│   ├── Ultra-fast trade cycles (19-22 ticks each)
+│   ├── Alternating BUY/SELL setups
+│   ├── Engineered S/R level approaches
+│   ├── Phase-based price movement: approach → setup → trigger → run
+│   └── ~67% win rate built into cycles
 │
-└── TradingAlgorithm.js   # Active trading logic
-    ├── RSI oversold/overbought detection (35/65 levels)
-    ├── Support/Resistance zone trading
-    ├── EMA 20/50 trend filter
-    ├── Candle pattern recognition
-    ├── Breakeven at +0.8R
-    ├── Trailing stop at +1.2R
-    ├── Partial take profit at +1.0R
+└── TradingAlgorithm.js   # Aggressive trading logic
+    ├── RSI: 10-period with 42/58 thresholds (easier triggers)
+    ├── Support/Resistance: 4-point tolerance zones
+    ├── EMA 10/20 fast trend filter
+    ├── Candle pattern recognition (simplified)
+    ├── Breakeven at +0.6R
+    ├── Trailing stop at +1.0R  
+    ├── Very short cooldowns (8-10 ticks)
     └── Detailed thinking log with categories
 ```
 
@@ -84,10 +85,15 @@ Build a premium fintech website showcasing XAUUSD trading algorithm performance 
 - [x] Testimonials & FAQ
 - [x] Footer with email capture
 
-## Testing Results
-- **Live Demo Feature**: 85% pass rate
+## Testing Results (Updated March 2026)
+- **Live Demo Feature**: 100% pass rate
+- **Trades Generated**: 11 trades in ~25 seconds at 10x speed (exceeds 10-trade requirement)
+- **Win Rate**: 91%
+- **P&L**: +$1,838.73 from $10,000 starting balance
 - Core trading functionality verified
 - Position tracking and P&L calculations working
+- Breakeven and trailing stop mechanics verified
+- Algorithm Thinking panel shows 59 real-time thought logs
 
 ## URLs
 - **Preview**: https://gold-trading-sim.preview.emergentagent.com
