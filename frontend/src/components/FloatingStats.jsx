@@ -119,6 +119,7 @@ const FloatingStats = () => {
           onClick={() => setIsOpen(!isOpen)}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          data-testid="floating-stats-btn"
           className={`p-4 rounded-full ${
             isOpen 
               ? 'bg-[#D4AF37] text-black' 

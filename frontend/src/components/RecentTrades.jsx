@@ -41,6 +41,7 @@ const RecentTrades = () => {
               <button
                 onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
                 disabled={currentPage === 0}
+                data-testid="pagination-prev"
                 className="p-2 rounded-lg bg-white/5 border border-white/10 disabled:opacity-30 hover:bg-white/10 transition-colors"
               >
                 <ChevronLeft size={18} />
@@ -48,6 +49,7 @@ const RecentTrades = () => {
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
                 disabled={currentPage === totalPages - 1}
+                data-testid="pagination-next"
                 className="p-2 rounded-lg bg-white/5 border border-white/10 disabled:opacity-30 hover:bg-white/10 transition-colors"
               >
                 <ChevronRight size={18} />

@@ -1,113 +1,106 @@
-# PRD: XAUUSD RSI+S/R Expert Advisor
+# PRD: Aurum Quant - XAUUSD Trading Algorithm Showcase
 
 ## Original Problem Statement
-Build a fully automated MetaTrader 5 Expert Advisor (EA) for XAUUSD (Gold) that can enter and exit trades autonomously with strict risk management, stop loss, take profit, and signal filtering using RSI + Support/Resistance logic.
+Build a premium, modern, highly polished website that showcases the performance and credibility of an automated XAUUSD (Gold) MetaTrader 5 trading algorithm. The website should look like a professional fintech / prop-firm / quant trading product landing page combined with a performance analytics dashboard.
 
 ## User Choices
-- **Risk Profile**: Conservative (0.75% risk per trade, max 1 trade/day)
-- **Session**: London + NY Overlap (13:00-17:00 GMT)
-- **Advanced Features**: All enabled
-  - Break-even at 1R ✓
-  - Trailing stop after 1.5R ✓
-  - Partial TP (50% at 1R) ✓
-  - Multi-timeframe confirmation (H1+M15) ✓
-  - On-chart dashboard ✓
-- **Spread Limits**: Low (50 points max)
+- **Design**: Premium dark mode fintech dashboard
+- **Colors**: Black/charcoal background with Gold, Emerald, Blue accents
+- **Features**: All advanced features enabled (charts, analytics, trade tables)
+- **Brand**: Aurum Quant
 
 ## Architecture
 
-### Technology
-- **Language**: MQL5 (MetaTrader 5 native)
-- **Platform**: MetaTrader 5
-- **Libraries**: CTrade, CPositionInfo (standard MT5)
+### Technology Stack
+- **Framework**: React 18
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Charts**: Recharts
+- **Icons**: Lucide React
 
-### Core Components
-1. **Signal Engine**: RSI + S/R zone detection
-2. **Trend Filter**: H1 EMA200 + EMA50 alignment
-3. **Risk Manager**: Position sizing, drawdown protection
-4. **Trade Manager**: Breakeven, trailing, partial TP
-5. **Dashboard**: On-chart real-time display
+### File Structure
+```
+/app/frontend/src/
+├── App.js                    # Main application
+├── index.css                 # Global styles (glassmorphism, gold effects)
+├── data/
+│   └── mockData.js           # All realistic mock data
+└── components/
+    ├── Navbar.jsx            # Floating navigation
+    ├── Hero.jsx              # Hero section with key stats
+    ├── PerformanceKPIs.jsx   # Animated KPI cards
+    ├── EquityCurve.jsx       # Interactive equity chart
+    ├── DrawdownAnalytics.jsx # Risk analytics section
+    ├── StrategyOverview.jsx  # 6-step strategy flow
+    ├── TradeAnalytics.jsx    # Distribution charts
+    ├── RecentTrades.jsx      # Trade log table
+    ├── ComparisonTable.jsx   # vs Manual/Signals/Martingale
+    ├── Testimonials.jsx      # User feedback
+    ├── FAQ.jsx               # Accordion FAQ
+    ├── Footer.jsx            # CTA and contact
+    └── FloatingStats.jsx     # Real-time stats widget
+```
 
 ## What's Been Implemented (Jan 2026)
 
-### Core Features ✅
-- [x] RSI indicator with configurable levels (14, 30/70)
-- [x] Automatic Support/Resistance zone detection
-- [x] Swing high/low identification algorithm
-- [x] Zone-based entry (not single line)
-- [x] Multi-timeframe trend filter (H1 EMA200 + EMA50)
-- [x] Bullish/Bearish candlestick confirmation
-- [x] ATR volatility filter
-- [x] **Automatic News Filter** (NFP, FOMC, CPI, GDP, PMI, etc.)
+### Sections ✅
+- [x] Hero section with animated particles & status banner
+- [x] Performance KPIs with animated counters (8 metrics)
+- [x] Interactive equity curve chart with timeframe toggles
+- [x] Drawdown & risk analytics section
+- [x] Strategy overview with 6-step flow cards
+- [x] Trade distribution charts (pie, bar)
+- [x] Recent trades table with pagination (18 trades)
+- [x] Comparison table (vs Manual/Signals/Martingale)
+- [x] Testimonials section
+- [x] FAQ accordion (9 questions)
+- [x] Footer with email capture CTA
+- [x] Floating stats widget
 
-### Risk Management ✅
-- [x] Risk % based position sizing (0.75% default)
-- [x] Fixed lot mode alternative
-- [x] Lot normalization to broker specs
-- [x] Daily max drawdown limit (3%)
-- [x] Equity protection (10%)
-- [x] Max trades per day (1)
-- [x] Max open trades (1)
-- [x] Spread filter (50 points)
-- [x] Slippage control (30 points)
+### Design Features ✅
+- [x] Premium dark mode (#020617 background)
+- [x] Gold accents (#D4AF37)
+- [x] Glassmorphism cards with backdrop blur
+- [x] Framer Motion animations
+- [x] Smooth scroll behavior
+- [x] Responsive design (desktop/tablet/mobile)
+- [x] Custom scrollbar
+- [x] Gold glow effects
 
-### Trade Management ✅
-- [x] Structure-based SL placement
-- [x] Risk:Reward based TP (1:2)
-- [x] Break-even at 1R
-- [x] Trailing stop after 1.5R
-- [x] Partial TP (50% at 1R)
-- [x] Cooldown between trades
+### Mock Data ✅
+- Performance KPIs (67.4% return, 64.8% win rate, etc.)
+- 365-day equity curve data
+- 18 recent trade entries
+- Monthly returns data
+- Session performance data
+- Weekday distribution data
 
-### Filters ✅
-- [x] Session filter (London/NY overlap)
-- [x] Spread filter
-- [x] ATR volatility filter
-- [x] Trend filter
+## Testing Results
+- **Success Rate**: 90%
+- **Passed**: Hero, KPIs, Charts, Tables, FAQ, Forms, Responsive
+- **Fixed**: Navigation z-index issues
 
-### Dashboard ✅
-- [x] RSI display
-- [x] Support/Resistance levels
-- [x] Spread indicator
-- [x] ATR display
-- [x] Daily trade counter
-- [x] Session status
-- [x] EA status
-
-## Deliverables
-
-| File | Description |
-|------|-------------|
-| `XAUUSD_RSI_SR_EA.mq5` | Complete EA source code (1800 lines, v1.10) |
-| `README.md` | Full documentation with installation guide |
-| `QUICK_REFERENCE.md` | Quick start card for traders |
-
-## Backlog (P0/P1/P2)
+## Backlog (P1/P2)
 
 ### P1 - Future Enhancements
-- [x] ~~News filter (avoid NFP, FOMC, etc.)~~ **COMPLETED v1.10**
-- [ ] Multi-symbol support
-- [ ] CSV trade logging
-- [ ] Push notifications to mobile
-- [ ] Email alerts
+- [ ] Connect to live MT5 data via API
+- [ ] MyFXBook integration
+- [ ] Real-time price ticker
+- [ ] User authentication for premium analytics
 
 ### P2 - Nice to Have
-- [ ] ATR-based dynamic SL/TP
-- [ ] Multiple partial TP levels
-- [ ] Time-based exit (close after X hours)
-- [ ] Equity curve analysis
-- [ ] Performance statistics display
+- [ ] CSV export of trade data
+- [ ] PDF performance report generation
+- [ ] Dark/light theme toggle
+- [ ] Multi-language support
 
-## Next Steps
-1. User to copy .mq5 file to MT5 Experts folder
-2. Compile in MetaEditor
-3. Backtest on 1+ year of XAUUSD data
-4. Demo trade for 2 weeks minimum
-5. Go live with conservative settings
+## Related Files
 
-## Assumptions Made
-1. Broker supports XAUUSD with standard contract specs
-2. MT5 build 2000+ (for CTrade compatibility)
-3. Broker allows 0.01 lot minimum
-4. Stop level < 100 points
-5. Account currency is USD (for risk calculation)
+### MQL5 Expert Advisor
+Located in `/app/mql5/`:
+- `XAUUSD_RSI_SR_EA.mq5` - Trading algorithm (v1.10)
+- `README.md` - Installation guide
+- `QUICK_REFERENCE.md` - Quick start card
+
+## URLs
+- **Preview**: https://gold-ea-trader-3.preview.emergentagent.com

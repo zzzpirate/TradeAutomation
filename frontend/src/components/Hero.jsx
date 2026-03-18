@@ -50,7 +50,8 @@ const Hero = () => {
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="absolute top-6 left-1/2 -translate-x-1/2 z-50"
+        className="absolute top-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none md:pointer-events-auto"
+        data-testid="status-banner"
       >
         <div className="glass flex items-center gap-4 px-6 py-3 rounded-full">
           <div className="flex items-center gap-2">
