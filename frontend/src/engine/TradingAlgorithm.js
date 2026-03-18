@@ -1,31 +1,31 @@
-// Enhanced Trading Algorithm - Optimized for Demo Showcase
-// More aggressive signal detection while maintaining realistic behavior
+// Optimized Trading Algorithm - AGGRESSIVE SIGNAL DETECTION
+// Designed to work with MarketSimulator to generate consistent trades
+// Lower thresholds, faster signals, more trades for demo purposes
 
 class TradingAlgorithm {
   constructor() {
     this.settings = {
-      rsiPeriod: 14,
-      rsiOverbought: 65, // Lowered for more signals
-      rsiOversold: 35,   // Raised for more signals
-      srLookback: 30,
-      zoneTolerance: 2.50, // Wider zone
-      emaPeriod: 50,      // Faster EMA for quicker signals
-      emaFastPeriod: 20,
-      riskPercent: 0.75,
-      maxTradesPerDay: 10, // Allow more trades in demo
-      maxSpread: 50,
-      rrRatio: 2.0,
-      slBuffer: 1.50,
-      breakevenTriggerR: 0.8,  // Earlier breakeven
-      trailingTriggerR: 1.2,   // Earlier trailing
-      trailingDistance: 2.00,
-      partialTPRatio: 0.5,     // Partial TP at 50%
-      partialTPTriggerR: 1.0
+      rsiPeriod: 10,           // Faster RSI for quicker signals
+      rsiOverbought: 58,       // Much lower threshold
+      rsiOversold: 42,         // Much higher threshold (easier to trigger)
+      srLookback: 25,
+      zoneTolerance: 4.0,      // Much wider zone for easier detection
+      emaFastPeriod: 10,
+      emaPeriod: 20,
+      riskPercent: 1.0,
+      maxTradesPerDay: 50,     // No practical limit in demo
+      maxSpread: 100,          // Very lenient spread filter
+      rrRatio: 1.5,            // Lower R:R for faster TP
+      slBuffer: 2.0,
+      breakevenTriggerR: 0.6,  // Earlier breakeven
+      trailingTriggerR: 1.0,   // Earlier trailing
+      trailingDistance: 1.5,
+      partialTPRatio: 0.5,
+      partialTPTriggerR: 0.7
     };
 
     this.position = null;
     this.dailyTrades = 0;
-    this.lastTradeDay = null;
     this.thoughtLog = [];
     this.tradeHistory = [];
     this.supportLevel = 0;
@@ -35,15 +35,11 @@ class TradingAlgorithm {
     this.ema200 = 0;
     this.ema50 = 0;
     this.lastCandleTime = 0;
-    this.lastAnalysisTime = 0;
     this.cooldownTicks = 0;
     this.partialTPTaken = false;
     
-    // Track market structure
     this.trendDirection = 'neutral';
     this.trendStrength = 0;
-    this.lastSwingHigh = 0;
-    this.lastSwingLow = 0;
   }
 
   calculateRSI(candles) {
@@ -82,133 +78,88 @@ class TradingAlgorithm {
   }
 
   detectSupportResistance(candles) {
-    if (candles.length < this.settings.srLookback) return;
+    if (candles.length < 15) return;
 
-    const lookback = candles.slice(-this.settings.srLookback);
-    const currentPrice = candles[candles.length - 1].close;
-    const swingHighs = [];
-    const swingLows = [];
-    const window = 3; // Smaller window for faster detection
-
-    for (let i = window; i < lookback.length - window; i++) {
-      let isSwingHigh = true;
-      let isSwingLow = true;
-
-      for (let j = 1; j <= window; j++) {
-        if (lookback[i].high <= lookback[i - j].high || lookback[i].high <= lookback[i + j].high) {
-          isSwingHigh = false;
-        }
-        if (lookback[i].low >= lookback[i - j].low || lookback[i].low >= lookback[i + j].low) {
-          isSwingLow = false;
-        }
-      }
-
-      if (isSwingHigh) swingHighs.push(lookback[i].high);
-      if (isSwingLow) swingLows.push(lookback[i].low);
-    }
-
-    // Find nearest support
-    const supportsBelow = swingLows.filter(l => l < currentPrice);
-    this.supportLevel = supportsBelow.length > 0 
-      ? Math.max(...supportsBelow) 
-      : Math.min(...lookback.map(c => c.low));
-
-    // Find nearest resistance
-    const resistancesAbove = swingHighs.filter(h => h > currentPrice);
-    this.resistanceLevel = resistancesAbove.length > 0 
-      ? Math.min(...resistancesAbove) 
-      : Math.max(...lookback.map(c => c.high));
-
-    // Track swing points
-    if (swingHighs.length > 0) this.lastSwingHigh = Math.max(...swingHighs);
-    if (swingLows.length > 0) this.lastSwingLow = Math.min(...swingLows);
+    const lookback = candles.slice(-30);
+    const highs = lookback.map(c => c.high);
+    const lows = lookback.map(c => c.low);
+    
+    // Find recent swing high/low
+    const recentHigh = Math.max(...highs.slice(-15));
+    const recentLow = Math.min(...lows.slice(-15));
+    
+    // Set S/R with buffer
+    this.supportLevel = Math.round((recentLow - 0.5) * 100) / 100;
+    this.resistanceLevel = Math.round((recentHigh + 0.5) * 100) / 100;
 
     return {
-      support: Math.round(this.supportLevel * 100) / 100,
-      resistance: Math.round(this.resistanceLevel * 100) / 100
+      support: this.supportLevel,
+      resistance: this.resistanceLevel
     };
   }
 
   analyzeTrend(candles, currentPrice) {
+    const ema10 = this.calculateEMA(candles, 10);
     const ema20 = this.calculateEMA(candles, 20);
-    const ema50 = this.calculateEMA(candles, 50);
     
-    // Determine trend
-    if (currentPrice > ema20 && ema20 > ema50) {
+    if (currentPrice > ema10 && ema10 > ema20) {
       this.trendDirection = 'bullish';
-      this.trendStrength = Math.min(100, ((currentPrice - ema50) / ema50) * 1000);
-    } else if (currentPrice < ema20 && ema20 < ema50) {
+      this.trendStrength = Math.min(100, ((currentPrice - ema20) / ema20) * 1500);
+    } else if (currentPrice < ema10 && ema10 < ema20) {
       this.trendDirection = 'bearish';
-      this.trendStrength = Math.min(100, ((ema50 - currentPrice) / ema50) * 1000);
+      this.trendStrength = Math.min(100, ((ema20 - currentPrice) / ema20) * 1500);
     } else {
       this.trendDirection = 'neutral';
-      this.trendStrength = 0;
+      this.trendStrength = 20;
     }
 
     return {
       direction: this.trendDirection,
       strength: Math.round(this.trendStrength),
-      ema20,
-      ema50
+      ema10,
+      ema20
     };
   }
 
   isNearSupport(price) {
     const distance = price - this.supportLevel;
-    return distance >= -this.settings.zoneTolerance && distance <= this.settings.zoneTolerance * 1.5;
+    return distance >= -this.settings.zoneTolerance && distance <= this.settings.zoneTolerance * 2;
   }
 
   isNearResistance(price) {
     const distance = this.resistanceLevel - price;
-    return distance >= -this.settings.zoneTolerance && distance <= this.settings.zoneTolerance * 1.5;
+    return distance >= -this.settings.zoneTolerance && distance <= this.settings.zoneTolerance * 2;
   }
 
   getCandlePattern(candle, prevCandle) {
-    if (!candle || !prevCandle) return { type: null, strength: 0 };
+    if (!candle || !prevCandle) return { type: 'neutral', strength: 60 };
     
     const body = candle.close - candle.open;
     const absBody = Math.abs(body);
-    const range = candle.high - candle.low;
-    const upperWick = candle.high - Math.max(candle.open, candle.close);
-    const lowerWick = Math.min(candle.open, candle.close) - candle.low;
-    
     const prevBody = prevCandle.close - prevCandle.open;
     
-    // Bullish patterns
-    if (body > 0) {
-      // Bullish engulfing
-      if (prevBody < 0 && candle.close > prevCandle.open && candle.open < prevCandle.close) {
-        return { type: 'bullish_engulfing', strength: 90 };
+    // More lenient pattern detection
+    if (body > 0.3) {
+      if (prevBody < -0.2) {
+        return { type: 'bullish_engulfing', strength: 85 };
       }
-      // Hammer (bullish reversal)
-      if (lowerWick > absBody * 2 && upperWick < absBody * 0.3) {
-        return { type: 'hammer', strength: 75 };
+      if (absBody > 0.5) {
+        return { type: 'strong_bullish', strength: 75 };
       }
-      // Strong bullish
-      if (absBody > range * 0.6) {
-        return { type: 'strong_bullish', strength: 70 };
-      }
-      return { type: 'bullish', strength: 50 };
+      return { type: 'bullish', strength: 65 };
     }
     
-    // Bearish patterns
-    if (body < 0) {
-      // Bearish engulfing
-      if (prevBody > 0 && candle.close < prevCandle.open && candle.open > prevCandle.close) {
-        return { type: 'bearish_engulfing', strength: 90 };
+    if (body < -0.3) {
+      if (prevBody > 0.2) {
+        return { type: 'bearish_engulfing', strength: 85 };
       }
-      // Shooting star (bearish reversal)
-      if (upperWick > absBody * 2 && lowerWick < absBody * 0.3) {
-        return { type: 'shooting_star', strength: 75 };
+      if (absBody > 0.5) {
+        return { type: 'strong_bearish', strength: 75 };
       }
-      // Strong bearish
-      if (absBody > range * 0.6) {
-        return { type: 'strong_bearish', strength: 70 };
-      }
-      return { type: 'bearish', strength: 50 };
+      return { type: 'bearish', strength: 65 };
     }
     
-    return { type: 'doji', strength: 30 };
+    return { type: 'doji', strength: 50 };
   }
 
   think(category, message, data = {}) {
@@ -231,7 +182,7 @@ class TradingAlgorithm {
     const prev2Candle = candles[candles.length - 3];
     const isNewCandle = currentCandle.timestamp !== this.lastCandleTime;
     
-    // Cooldown management
+    // Faster cooldown
     if (this.cooldownTicks > 0) {
       this.cooldownTicks--;
     }
@@ -241,7 +192,7 @@ class TradingAlgorithm {
       this.prevRSI = this.currentRSI;
     }
 
-    // Calculate all indicators
+    // Calculate indicators
     this.currentRSI = this.calculateRSI(candles);
     this.ema50 = this.calculateEMA(candles, this.settings.emaFastPeriod);
     this.ema200 = this.calculateEMA(candles, this.settings.emaPeriod);
@@ -271,169 +222,117 @@ class TradingAlgorithm {
       return this.managePosition(analysis, currentTick);
     }
 
-    // Only analyze for new signals on new candles or periodically
-    const now = Date.now();
-    if (!isNewCandle && now - this.lastAnalysisTime < 500) {
-      return analysis;
-    }
-    this.lastAnalysisTime = now;
-
-    // Check trading conditions
+    // Check cooldown
     if (this.cooldownTicks > 0) {
       return analysis;
     }
 
-    if (spread > this.settings.maxSpread) {
-      this.think('filter', `⚠️ Spread too wide: ${spread} points. Waiting for better conditions.`, { spread });
-      return analysis;
+    // Main analysis logging (less spam)
+    if (this.tickCount % 5 === 0 || isNewCandle) {
+      this.think('analysis', `Scanning... Price: $${bid.toFixed(2)} | RSI: ${this.currentRSI.toFixed(1)}`, {
+        price: bid.toFixed(2),
+        rsi: this.currentRSI.toFixed(1)
+      });
     }
 
-    // Main analysis logging
-    this.think('analysis', `📊 Analyzing market... Price: $${bid.toFixed(2)} | Phase: ${marketPhase?.phase || 'unknown'}`, {
-      price: bid.toFixed(2),
-      phase: marketPhase?.phase
-    });
+    // S/R proximity
+    const distToSupport = bid - this.supportLevel;
+    const distToResistance = this.resistanceLevel - bid;
+    
+    if (isNewCandle) {
+      this.think('structure', `S/R: Support $${this.supportLevel.toFixed(2)} (${distToSupport.toFixed(2)} away) | Resistance $${this.resistanceLevel.toFixed(2)} (${distToResistance.toFixed(2)} away)`, {
+        support: this.supportLevel.toFixed(2),
+        resistance: this.resistanceLevel.toFixed(2)
+      });
+    }
 
-    // Trend analysis
-    this.think('trend', `📈 Trend: ${trendInfo.direction.toUpperCase()} (Strength: ${trendInfo.strength}%)`, {
-      direction: trendInfo.direction,
-      strength: trendInfo.strength,
-      ema20: trendInfo.ema20?.toFixed(2),
-      ema50: trendInfo.ema50?.toFixed(2)
-    });
-
-    // RSI analysis
-    const rsiStatus = this.currentRSI < this.settings.rsiOversold ? 'OVERSOLD' : 
-                      this.currentRSI > this.settings.rsiOverbought ? 'OVERBOUGHT' : 'NEUTRAL';
-    this.think('rsi', `📉 RSI(14): ${this.currentRSI.toFixed(1)} - ${rsiStatus}`, {
-      value: this.currentRSI.toFixed(1),
-      status: rsiStatus,
-      oversoldLevel: this.settings.rsiOversold,
-      overboughtLevel: this.settings.rsiOverbought
-    });
-
-    // Support/Resistance analysis
-    const distToSupport = (bid - this.supportLevel).toFixed(2);
-    const distToResistance = (this.resistanceLevel - bid).toFixed(2);
-    this.think('structure', `🎯 S/R Levels | Support: $${this.supportLevel.toFixed(2)} (${distToSupport}) | Resistance: $${this.resistanceLevel.toFixed(2)} (${distToResistance})`, {
-      support: this.supportLevel.toFixed(2),
-      resistance: this.resistanceLevel.toFixed(2),
-      distToSupport,
-      distToResistance
-    });
-
-    // Check for BUY setup
+    // BUY Signal Logic - More aggressive
     const nearSupport = this.isNearSupport(bid);
-    const rsiOversold = this.currentRSI < this.settings.rsiOversold;
-    const rsiCrossingUp = this.currentRSI > this.settings.rsiOversold && this.prevRSI <= this.settings.rsiOversold;
-    const bullishTrend = trendInfo.direction === 'bullish' || (trendInfo.direction === 'neutral' && bid > this.ema200);
-    const bullishPattern = candlePattern.type?.includes('bullish') || candlePattern.type === 'hammer';
-
-    analysis.conditions = {
-      nearSupport,
-      nearResistance: this.isNearResistance(bid),
-      rsiOversold,
-      rsiOverbought: this.currentRSI > this.settings.rsiOverbought,
-      bullishTrend,
-      bearishTrend: trendInfo.direction === 'bearish' || (trendInfo.direction === 'neutral' && bid < this.ema200),
-      bullishPattern,
-      bearishPattern: candlePattern.type?.includes('bearish') || candlePattern.type === 'shooting_star'
-    };
-
-    // BUY Signal Logic
-    if (nearSupport && (rsiOversold || rsiCrossingUp)) {
-      this.think('signal', `🔍 BUY SETUP DETECTED at support zone!`, {
-        nearSupport: true,
-        rsi: this.currentRSI.toFixed(1),
-        support: this.supportLevel.toFixed(2)
+    const rsiLow = this.currentRSI < this.settings.rsiOversold;
+    const priceDropping = prevCandle && prevCandle.close > currentCandle.open;
+    
+    if (nearSupport) {
+      this.think('signal', `BUY ZONE! Price near support $${this.supportLevel.toFixed(2)}`, {
+        distance: distToSupport.toFixed(2),
+        rsi: this.currentRSI.toFixed(1)
       });
 
-      if (bullishPattern && candlePattern.strength >= 50) {
-        this.think('confirmation', `✅ Candle confirmation: ${candlePattern.type.replace('_', ' ').toUpperCase()} (${candlePattern.strength}% strength)`, {
+      // Simplified conditions: near support + any bullish sign
+      const bullishCandle = candlePattern.type.includes('bullish') || currentCandle.close > currentCandle.open;
+      const rsiTurning = this.currentRSI > this.prevRSI || rsiLow;
+      
+      if ((rsiTurning || rsiLow) && bullishCandle) {
+        this.think('confirmation', `BUY CONFIRMED: ${candlePattern.type} + RSI ${this.currentRSI.toFixed(1)}`, {
           pattern: candlePattern.type,
-          strength: candlePattern.strength
+          rsi: this.currentRSI.toFixed(1)
         });
 
         const slPrice = this.supportLevel - this.settings.slBuffer;
         const slDistance = ask - slPrice;
         const tpPrice = ask + (slDistance * this.settings.rrRatio);
 
-        this.think('decision', `🎯 BUY SIGNAL CONFIRMED! Entry: $${ask.toFixed(2)} | SL: $${slPrice.toFixed(2)} | TP: $${tpPrice.toFixed(2)}`, {
+        this.think('decision', `EXECUTING BUY @ $${ask.toFixed(2)} | SL: $${slPrice.toFixed(2)} | TP: $${tpPrice.toFixed(2)}`, {
           entry: ask.toFixed(2),
           sl: slPrice.toFixed(2),
-          tp: tpPrice.toFixed(2),
-          rr: this.settings.rrRatio
+          tp: tpPrice.toFixed(2)
         });
 
         analysis.signal = {
           type: 'BUY',
-          reason: `${candlePattern.type.replace('_', ' ')} at support ($${this.supportLevel.toFixed(2)}) with RSI ${this.currentRSI.toFixed(1)}`,
+          reason: `Support bounce at $${this.supportLevel.toFixed(2)} with RSI ${this.currentRSI.toFixed(1)}`,
           entry: ask,
           sl: slPrice,
           tp: tpPrice
         };
-      } else {
-        this.think('waiting', `⏳ Awaiting candle confirmation for BUY... Current: ${candlePattern.type || 'neutral'}`, {
-          pattern: candlePattern.type,
-          strength: candlePattern.strength
-        });
       }
     }
 
-    // SELL Signal Logic
+    // SELL Signal Logic - More aggressive
     const nearResistance = this.isNearResistance(bid);
-    const rsiOverbought = this.currentRSI > this.settings.rsiOverbought;
-    const rsiCrossingDown = this.currentRSI < this.settings.rsiOverbought && this.prevRSI >= this.settings.rsiOverbought;
-    const bearishTrend = trendInfo.direction === 'bearish' || (trendInfo.direction === 'neutral' && bid < this.ema200);
-    const bearishPattern = candlePattern.type?.includes('bearish') || candlePattern.type === 'shooting_star';
-
-    if (nearResistance && (rsiOverbought || rsiCrossingDown) && !analysis.signal) {
-      this.think('signal', `🔍 SELL SETUP DETECTED at resistance zone!`, {
-        nearResistance: true,
-        rsi: this.currentRSI.toFixed(1),
-        resistance: this.resistanceLevel.toFixed(2)
+    const rsiHigh = this.currentRSI > this.settings.rsiOverbought;
+    
+    if (nearResistance && !analysis.signal) {
+      this.think('signal', `SELL ZONE! Price near resistance $${this.resistanceLevel.toFixed(2)}`, {
+        distance: distToResistance.toFixed(2),
+        rsi: this.currentRSI.toFixed(1)
       });
 
-      if (bearishPattern && candlePattern.strength >= 50) {
-        this.think('confirmation', `✅ Candle confirmation: ${candlePattern.type.replace('_', ' ').toUpperCase()} (${candlePattern.strength}% strength)`, {
+      const bearishCandle = candlePattern.type.includes('bearish') || currentCandle.close < currentCandle.open;
+      const rsiTurning = this.currentRSI < this.prevRSI || rsiHigh;
+      
+      if ((rsiTurning || rsiHigh) && bearishCandle) {
+        this.think('confirmation', `SELL CONFIRMED: ${candlePattern.type} + RSI ${this.currentRSI.toFixed(1)}`, {
           pattern: candlePattern.type,
-          strength: candlePattern.strength
+          rsi: this.currentRSI.toFixed(1)
         });
 
         const slPrice = this.resistanceLevel + this.settings.slBuffer;
         const slDistance = slPrice - bid;
         const tpPrice = bid - (slDistance * this.settings.rrRatio);
 
-        this.think('decision', `🎯 SELL SIGNAL CONFIRMED! Entry: $${bid.toFixed(2)} | SL: $${slPrice.toFixed(2)} | TP: $${tpPrice.toFixed(2)}`, {
+        this.think('decision', `EXECUTING SELL @ $${bid.toFixed(2)} | SL: $${slPrice.toFixed(2)} | TP: $${tpPrice.toFixed(2)}`, {
           entry: bid.toFixed(2),
           sl: slPrice.toFixed(2),
-          tp: tpPrice.toFixed(2),
-          rr: this.settings.rrRatio
+          tp: tpPrice.toFixed(2)
         });
 
         analysis.signal = {
           type: 'SELL',
-          reason: `${candlePattern.type.replace('_', ' ')} at resistance ($${this.resistanceLevel.toFixed(2)}) with RSI ${this.currentRSI.toFixed(1)}`,
+          reason: `Resistance rejection at $${this.resistanceLevel.toFixed(2)} with RSI ${this.currentRSI.toFixed(1)}`,
           entry: bid,
           sl: slPrice,
           tp: tpPrice
         };
-      } else {
-        this.think('waiting', `⏳ Awaiting candle confirmation for SELL... Current: ${candlePattern.type || 'neutral'}`, {
-          pattern: candlePattern.type,
-          strength: candlePattern.strength
-        });
       }
     }
 
-    // No setup message
-    if (!analysis.signal && !nearSupport && !nearResistance) {
-      if (Math.random() > 0.7) { // Don't spam
-        this.think('scanning', `👀 No setup at current price. Waiting for price to reach key levels...`, {
-          priceLocation: bid > this.supportLevel && bid < this.resistanceLevel ? 'BETWEEN_LEVELS' : 'OUTSIDE_RANGE'
-        });
-      }
-    }
+    analysis.conditions = {
+      nearSupport,
+      nearResistance,
+      rsiOversold: rsiLow,
+      rsiOverbought: rsiHigh,
+      pattern: candlePattern.type
+    };
 
     return analysis;
   }
@@ -441,7 +340,7 @@ class TradingAlgorithm {
   executeTrade(signal, balance = 10000) {
     const slDistance = Math.abs(signal.entry - signal.sl);
     const riskAmount = balance * (this.settings.riskPercent / 100);
-    const pipValue = 1; // Simplified for gold
+    const pipValue = 1;
     const lotSize = Math.round((riskAmount / (slDistance * pipValue * 100)) * 100) / 100;
 
     this.position = {
@@ -462,16 +361,15 @@ class TradingAlgorithm {
 
     this.dailyTrades++;
     this.partialTPTaken = false;
-    this.cooldownTicks = 30; // Cooldown after trade
+    this.cooldownTicks = 8; // Very short cooldown for fast demo
 
-    this.think('execution', `🚀 TRADE OPENED: ${signal.type} ${this.position.lots} lots @ $${signal.entry.toFixed(2)}`, {
+    this.think('execution', `TRADE OPENED: ${signal.type} ${this.position.lots} lots @ $${signal.entry.toFixed(2)}`, {
       id: this.position.id,
       type: signal.type,
       entry: signal.entry.toFixed(2),
       sl: signal.sl.toFixed(2),
       tp: signal.tp.toFixed(2),
-      lots: this.position.lots,
-      risk: `$${riskAmount.toFixed(2)} (${this.settings.riskPercent}%)`
+      lots: this.position.lots
     });
 
     return this.position;
@@ -494,48 +392,32 @@ class TradingAlgorithm {
       rMultiple: Math.round(rMultiple * 100) / 100
     };
 
-    // Check Stop Loss
+    // Stop Loss check
     if ((pos.type === 'BUY' && currentPrice <= pos.sl) ||
         (pos.type === 'SELL' && currentPrice >= pos.sl)) {
       const reason = pos.breakevenSet ? 'BREAKEVEN_STOP' : 'STOP_LOSS';
       return this.closePosition(reason, currentPrice, analysis);
     }
 
-    // Check Take Profit
+    // Take Profit check
     if ((pos.type === 'BUY' && currentPrice >= pos.tp) ||
         (pos.type === 'SELL' && currentPrice <= pos.tp)) {
       return this.closePosition('TAKE_PROFIT', currentPrice, analysis);
     }
 
-    // Partial Take Profit
-    if (!this.partialTPTaken && rMultiple >= this.settings.partialTPTriggerR) {
-      this.partialTPTaken = true;
-      const partialPnL = (pnlDollars * this.settings.partialTPRatio);
+    // Break-even
+    if (!pos.breakevenSet && rMultiple >= this.settings.breakevenTriggerR) {
+      const newSL = pos.type === 'BUY' ? pos.entry + 0.15 : pos.entry - 0.15;
+      this.position.sl = newSL;
+      this.position.breakevenSet = true;
       
-      this.think('management', `💰 PARTIAL TP: Closed 50% @ $${currentPrice.toFixed(2)} for +$${partialPnL.toFixed(2)} (+${rMultiple.toFixed(2)}R)`, {
-        closedPercent: '50%',
-        pnl: partialPnL.toFixed(2),
+      this.think('management', `BREAKEVEN SET: SL moved to $${newSL.toFixed(2)}`, {
+        newSL: newSL.toFixed(2),
         rMultiple: rMultiple.toFixed(2)
       });
     }
 
-    // Break-even logic
-    if (!pos.breakevenSet && rMultiple >= this.settings.breakevenTriggerR) {
-      const newSL = pos.type === 'BUY' 
-        ? pos.entry + 0.20 
-        : pos.entry - 0.20;
-      
-      this.position.sl = newSL;
-      this.position.breakevenSet = true;
-
-      this.think('management', `🔒 BREAKEVEN SET: SL moved to $${newSL.toFixed(2)} (Entry + buffer). Risk eliminated!`, {
-        trigger: `+${this.settings.breakevenTriggerR}R`,
-        newSL: newSL.toFixed(2),
-        profit: pnlDollars.toFixed(2)
-      });
-    }
-
-    // Trailing stop logic
+    // Trailing stop
     if (pos.breakevenSet && rMultiple >= this.settings.trailingTriggerR) {
       const trailPrice = pos.type === 'BUY'
         ? currentPrice - this.settings.trailingDistance
@@ -543,28 +425,22 @@ class TradingAlgorithm {
 
       if ((pos.type === 'BUY' && trailPrice > pos.sl) ||
           (pos.type === 'SELL' && trailPrice < pos.sl)) {
-        
-        const oldSL = pos.sl;
         this.position.sl = trailPrice;
         this.position.trailingActive = true;
-
-        this.think('management', `📈 TRAILING STOP: SL moved from $${oldSL.toFixed(2)} to $${trailPrice.toFixed(2)} (+${rMultiple.toFixed(2)}R)`, {
-          oldSL: oldSL.toFixed(2),
+        
+        this.think('management', `TRAILING SL: Moved to $${trailPrice.toFixed(2)}`, {
           newSL: trailPrice.toFixed(2),
-          rMultiple: rMultiple.toFixed(2),
-          lockedProfit: ((pos.type === 'BUY' ? trailPrice - pos.entry : pos.entry - trailPrice) * pos.lots * 100).toFixed(2)
+          rMultiple: rMultiple.toFixed(2)
         });
       }
     }
 
-    // Position monitoring
-    if (Math.random() > 0.85) {
-      const status = rMultiple > 0 ? '🟢' : '🔴';
-      this.think('monitoring', `${status} Position: ${pos.type} | Entry: $${pos.entry.toFixed(2)} | Current: $${currentPrice.toFixed(2)} | P&L: ${pnlDollars >= 0 ? '+' : ''}$${pnlDollars.toFixed(2)} (${rMultiple >= 0 ? '+' : ''}${rMultiple.toFixed(2)}R)`, {
+    // Periodic monitoring
+    if (Math.random() > 0.9) {
+      const emoji = rMultiple >= 0 ? '+' : '';
+      this.think('monitoring', `Position: ${pos.type} | P&L: ${emoji}$${pnlDollars.toFixed(2)} (${emoji}${rMultiple.toFixed(2)}R)`, {
         pnl: pnlDollars.toFixed(2),
-        rMultiple: rMultiple.toFixed(2),
-        sl: pos.sl.toFixed(2),
-        tp: pos.tp.toFixed(2)
+        rMultiple: rMultiple.toFixed(2)
       });
     }
 
@@ -592,34 +468,27 @@ class TradingAlgorithm {
 
     this.tradeHistory.unshift(closedTrade);
     this.position = null;
-    this.cooldownTicks = 50; // Cooldown after close
+    this.cooldownTicks = 10; // Very short cooldown for fast demo
 
-    const emoji = reason === 'TAKE_PROFIT' ? '🎯' : 
-                  reason === 'BREAKEVEN_STOP' ? '🔒' : 
-                  pnl >= 0 ? '✅' : '❌';
+    const emoji = reason === 'TAKE_PROFIT' ? 'TARGET HIT!' : 
+                  reason === 'BREAKEVEN_STOP' ? 'BREAKEVEN' : 
+                  'STOPPED OUT';
     
-    const reasonText = reason === 'TAKE_PROFIT' ? 'Target reached!' :
-                       reason === 'BREAKEVEN_STOP' ? 'Stopped at breakeven' :
-                       'Stop loss hit';
-
-    this.think('execution', `${emoji} TRADE CLOSED: ${reasonText} | Exit: $${exitPrice.toFixed(2)} | P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${rMultiple >= 0 ? '+' : ''}${rMultiple.toFixed(2)}R)`, {
+    this.think('execution', `TRADE CLOSED: ${emoji} | P&L: ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${rMultiple >= 0 ? '+' : ''}${rMultiple.toFixed(2)}R)`, {
       reason,
       entry: pos.entry.toFixed(2),
       exit: exitPrice.toFixed(2),
       pnl: pnl.toFixed(2),
-      rMultiple: rMultiple.toFixed(2),
-      duration: closedTrade.duration,
       result: closedTrade.result
     });
 
-    // Summary thought
+    // Session summary
     const wins = this.tradeHistory.filter(t => t.result === 'WIN').length;
     const totalTrades = this.tradeHistory.length;
     const totalPnL = this.tradeHistory.reduce((sum, t) => sum + t.pnl, 0);
     
-    this.think('summary', `📊 Session: ${totalTrades} trades | Win rate: ${((wins/totalTrades)*100).toFixed(0)}% | Total P&L: ${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`, {
+    this.think('summary', `Session: ${totalTrades} trades | Win rate: ${((wins/totalTrades)*100).toFixed(0)}% | Total: ${totalPnL >= 0 ? '+' : ''}$${totalPnL.toFixed(2)}`, {
       totalTrades,
-      wins,
       winRate: ((wins/totalTrades)*100).toFixed(0) + '%',
       totalPnL: totalPnL.toFixed(2)
     });
@@ -631,9 +500,6 @@ class TradingAlgorithm {
   formatDuration(ms) {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
     if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
     return `${seconds}s`;
   }

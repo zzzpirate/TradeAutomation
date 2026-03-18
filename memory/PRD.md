@@ -90,7 +90,7 @@ Build a premium fintech website showcasing XAUUSD trading algorithm performance 
 - Position tracking and P&L calculations working
 
 ## URLs
-- **Preview**: https://gold-ea-trader-3.preview.emergentagent.com
+- **Preview**: https://gold-trading-sim.preview.emergentagent.com
 
 ## Related Files (MQL5 EA)
 - `/app/mql5/XAUUSD_RSI_SR_EA.mq5` - Production EA v1.10 with news filter
