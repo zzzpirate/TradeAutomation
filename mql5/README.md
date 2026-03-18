@@ -2,7 +2,7 @@
 
 ## Professional Gold Trading Bot for MetaTrader 5
 
-A production-ready, fully automated Expert Advisor for trading XAUUSD (Gold) using RSI divergence at Support/Resistance zones with multi-timeframe trend confirmation.
+A production-ready, fully automated Expert Advisor for trading XAUUSD (Gold) using RSI divergence at Support/Resistance zones with multi-timeframe trend confirmation and **automatic news filtering**.
 
 ---
 
@@ -11,12 +11,13 @@ A production-ready, fully automated Expert Advisor for trading XAUUSD (Gold) usi
 1. [Overview](#overview)
 2. [Strategy Logic](#strategy-logic)
 3. [Features](#features)
-4. [Installation Guide](#installation-guide)
-5. [Configuration Parameters](#configuration-parameters)
-6. [Risk Management](#risk-management)
-7. [Backtesting Guide](#backtesting-guide)
-8. [Live Trading Considerations](#live-trading-considerations)
-9. [Troubleshooting](#troubleshooting)
+4. [News Filter](#news-filter)
+5. [Installation Guide](#installation-guide)
+6. [Configuration Parameters](#configuration-parameters)
+7. [Risk Management](#risk-management)
+8. [Backtesting Guide](#backtesting-guide)
+9. [Live Trading Considerations](#live-trading-considerations)
+10. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -33,6 +34,7 @@ A production-ready, fully automated Expert Advisor for trading XAUUSD (Gold) usi
 | **Risk Per Trade** | 0.75% (Conservative) |
 | **Max Trades/Day** | 1 |
 | **Session** | London/NY Overlap (13:00-17:00 GMT) |
+| **News Filter** | Auto-disables during NFP, FOMC, CPI, etc. |
 
 ### Key Philosophy
 
@@ -41,6 +43,7 @@ This EA trades the **bounce** at Support/Resistance zones, confirmed by:
 2. H1 trend alignment (EMA 200 + EMA 50)
 3. Candlestick confirmation
 4. ATR volatility filter
+5. **Automatic news event avoidance**
 
 The conservative approach prioritizes **capital preservation** over frequency, making it suitable for real accounts.
 
@@ -117,6 +120,7 @@ The EA automatically detects S/R zones by:
 - ✅ Daily drawdown protection
 - ✅ Equity protection
 - ✅ Cooldown between trades
+- ✅ **Automatic News Filter** (NEW in v1.10)
 
 ### Safety Features
 - ✅ Magic number support (avoid conflicts)
@@ -124,6 +128,62 @@ The EA automatically detects S/R zones by:
 - ✅ Lot size normalization to broker specs
 - ✅ Slippage control
 - ✅ Error handling and logging
+
+---
+
+## News Filter
+
+### Overview
+
+Gold (XAUUSD) is highly sensitive to US economic data releases. The news filter automatically disables trading during high-impact events to avoid:
+- Extreme volatility spikes
+- Widened spreads
+- Slippage on entry/exit
+- Unpredictable price movements
+
+### Filtered Events
+
+| Event | Code | Impact on Gold |
+|-------|------|----------------|
+| **NFP** | Non-Farm Payrolls | 🔴 Very High |
+| **FOMC** | Federal Reserve Decision | 🔴 Very High |
+| **CPI** | Consumer Price Index | 🔴 Very High |
+| **GDP** | Gross Domestic Product | 🟠 High |
+| **Retail Sales** | Consumer Spending | 🟠 High |
+| **PMI** | Manufacturing/Services | 🟡 Medium-High |
+| **Unemployment** | Jobless Claims | 🟡 Medium-High |
+| **Central Bank** | ECB, BOE, BOJ, RBA | 🟠 High |
+
+### How It Works
+
+1. **MT5 Economic Calendar**: Primary method uses the built-in calendar API
+2. **Scheduled Events**: Fallback for known recurring events (NFP on 1st Friday, etc.)
+3. **Time Buffer**: Stops trading 30 minutes BEFORE and AFTER each event (configurable)
+
+### Dashboard Display
+
+```
+News: CLEAR              ← Safe to trade
+News: Next: 45m          ← Event in 45 minutes
+News: BLOCKED: NFP       ← Currently avoiding NFP
+News: DISABLED           ← News filter turned off
+```
+
+### Configuration
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `InpUseNewsFilter` | true | Enable/disable news filter |
+| `InpNewsMinutesBefore` | 30 | Stop trading X minutes before |
+| `InpNewsMinutesAfter` | 30 | Resume trading X minutes after |
+| `InpFilterNFP` | true | Filter Non-Farm Payrolls |
+| `InpFilterFOMC` | true | Filter Fed decisions |
+| `InpFilterCPI` | true | Filter inflation data |
+| `InpFilterGDP` | true | Filter GDP releases |
+| `InpFilterRetailSales` | true | Filter retail sales |
+| `InpFilterPMI` | true | Filter PMI data |
+| `InpFilterUnemployment` | true | Filter jobless claims |
+| `InpFilterCentralBank` | true | Filter all central bank events |
 
 ---
 
@@ -390,6 +450,7 @@ For issues or feature requests, please document:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.10 | Jan 2026 | Added automatic news filter for high-impact events |
 | 1.00 | Jan 2026 | Initial release |
 
 ---

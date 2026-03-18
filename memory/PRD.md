@@ -38,6 +38,7 @@ Build a fully automated MetaTrader 5 Expert Advisor (EA) for XAUUSD (Gold) that 
 - [x] Multi-timeframe trend filter (H1 EMA200 + EMA50)
 - [x] Bullish/Bearish candlestick confirmation
 - [x] ATR volatility filter
+- [x] **Automatic News Filter** (NFP, FOMC, CPI, GDP, PMI, etc.)
 
 ### Risk Management ✅
 - [x] Risk % based position sizing (0.75% default)
@@ -77,14 +78,14 @@ Build a fully automated MetaTrader 5 Expert Advisor (EA) for XAUUSD (Gold) that 
 
 | File | Description |
 |------|-------------|
-| `XAUUSD_RSI_SR_EA.mq5` | Complete EA source code (1496 lines) |
+| `XAUUSD_RSI_SR_EA.mq5` | Complete EA source code (1800 lines, v1.10) |
 | `README.md` | Full documentation with installation guide |
 | `QUICK_REFERENCE.md` | Quick start card for traders |
 
 ## Backlog (P0/P1/P2)
 
 ### P1 - Future Enhancements
-- [ ] News filter (avoid NFP, FOMC, etc.)
+- [x] ~~News filter (avoid NFP, FOMC, etc.)~~ **COMPLETED v1.10**
 - [ ] Multi-symbol support
 - [ ] CSV trade logging
 - [ ] Push notifications to mobile

@@ -4,7 +4,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  XAUUSD RSI+S/R EA v1.00                    │
+│              XAUUSD RSI+S/R EA v1.10 (News Filter)          │
 ├─────────────────────────────────────────────────────────────┤
 │  Risk: 0.75% per trade  │  Max Trades: 1/day              │
 │  Session: 13:00-17:00 GMT (London/NY Overlap)              │
@@ -20,6 +20,11 @@
 │  @ 1.0R → Partial TP (50%) + Move SL to Breakeven          │
 │  @ 1.5R → Start Trailing Stop (150 pts)                    │
 │  @ 2.0R → Final Take Profit                                │
+├─────────────────────────────────────────────────────────────┤
+│  NEWS FILTER (Auto-blocks trading during events)           │
+│  ─────────────────                                          │
+│  NFP, FOMC, CPI, GDP, Retail Sales, PMI, Unemployment      │
+│  Buffer: 30 min before & after each event                  │
 ├─────────────────────────────────────────────────────────────┤
 │  SAFETY FILTERS                                             │
 │  ─────────────────                                          │
@@ -53,9 +58,19 @@
 │  ATR: 15.50                             │  ← Current volatility
 │  Daily Trades: 0/1                      │  ← Trades used today
 │  Session: ACTIVE                        │  ← Trading session status
+│  News: CLEAR                            │  ← News filter status
 │  Status: READY                          │  ← EA operational status
 └─────────────────────────────────────────┘
 ```
+
+## News Filter Status
+
+| Status | Meaning |
+|--------|---------|
+| CLEAR | No high-impact news nearby |
+| Next: Xm | High-impact event in X minutes |
+| BLOCKED: [event] | Currently avoiding news event |
+| DISABLED | News filter is turned off |
 
 ## Status Messages
 
@@ -63,6 +78,7 @@
 |--------|---------|
 | READY | EA is active and looking for signals |
 | MAX DAILY TRADES | Daily limit reached, wait for new day |
+| NEWS FILTER | High-impact news event - trading paused |
 | HIGH SPREAD | Spread too high, waiting for better conditions |
 | SESSION CLOSED | Outside trading hours |
 | COOLDOWN: X | Waiting X candles before next signal |

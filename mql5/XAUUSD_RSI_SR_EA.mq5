@@ -8,7 +8,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Professional Trading EA"
 #property link      ""
-#property version   "1.00"
+#property version   "1.10"
 #property strict
 
 //--- Include standard trading library
@@ -88,6 +88,19 @@ input int               InpATRPeriod           = 14;                 // ATR Peri
 input double            InpMinATRMultiplier    = 0.5;                // Min ATR Multiplier
 input double            InpMaxATRMultiplier    = 3.0;                // Max ATR Multiplier
 
+//--- News Filter Settings (High-Impact Events)
+input bool              InpUseNewsFilter       = true;               // Enable News Filter
+input int               InpNewsMinutesBefore   = 30;                 // Stop trading X min BEFORE news
+input int               InpNewsMinutesAfter    = 30;                 // Resume trading X min AFTER news
+input bool              InpFilterNFP           = true;               // Filter NFP (Non-Farm Payrolls)
+input bool              InpFilterFOMC          = true;               // Filter FOMC (Fed Rate Decision)
+input bool              InpFilterCPI           = true;               // Filter CPI (Inflation Data)
+input bool              InpFilterGDP           = true;               // Filter GDP Releases
+input bool              InpFilterRetailSales   = true;               // Filter Retail Sales
+input bool              InpFilterPMI           = true;               // Filter PMI Data
+input bool              InpFilterUnemployment  = true;               // Filter Unemployment Claims
+input bool              InpFilterCentralBank   = true;               // Filter All Central Bank Events
+
 //--- Dashboard Settings
 input bool              InpShowDashboard       = true;               // Show On-Chart Dashboard
 input int               InpDashboardX          = 20;                 // Dashboard X Position
@@ -134,6 +147,12 @@ double         symbolMaxLot;              // Maximum lot
 double         symbolLotStep;             // Lot step
 double         symbolContractSize;        // Contract size
 int            symbolStopLevel;           // Stop level
+
+//--- News filter variables
+bool           newsFilterActive    = false;     // Is news filter currently blocking?
+string         nextNewsEvent       = "";        // Name of next high-impact event
+datetime       nextNewsTime        = 0;         // Time of next high-impact event
+datetime       lastNewsCheck       = 0;         // Last time we checked for news
 
 //+------------------------------------------------------------------+
 //|                    INITIALIZATION                                 |
@@ -1243,6 +1262,13 @@ bool CanTrade()
       return false;
    }
    
+   //--- Check news filter
+   if(InpUseNewsFilter && IsHighImpactNewsTime())
+   {
+      if(InpEnableDebugLogs) Print("Filter: High-impact news event - ", nextNewsEvent);
+      return false;
+   }
+   
    return true;
 }
 
@@ -1256,6 +1282,262 @@ bool IsWithinTradingSession()
    int endMinutes = InpSessionEndHour * 60 + InpSessionEndMin;
    
    return (currentMinutes >= startMinutes && currentMinutes < endMinutes);
+}
+
+//+------------------------------------------------------------------+
+//|                    NEWS FILTER FUNCTIONS                          |
+//+------------------------------------------------------------------+
+
+//--- Check if we're near a high-impact news event
+bool IsHighImpactNewsTime()
+{
+   //--- Only check every 60 seconds to reduce overhead
+   if(TimeCurrent() - lastNewsCheck < 60)
+   {
+      return newsFilterActive;
+   }
+   lastNewsCheck = TimeCurrent();
+   
+   //--- Try to use MT5 Economic Calendar first
+   if(CheckEconomicCalendar())
+   {
+      return newsFilterActive;
+   }
+   
+   //--- Fallback to scheduled events check
+   return CheckScheduledEvents();
+}
+
+//+------------------------------------------------------------------+
+//|  Check MT5 Economic Calendar for high-impact events               |
+//+------------------------------------------------------------------+
+bool CheckEconomicCalendar()
+{
+   //--- Define the time window to check
+   datetime fromTime = TimeCurrent() - InpNewsMinutesAfter * 60;
+   datetime toTime = TimeCurrent() + InpNewsMinutesBefore * 60;
+   
+   MqlCalendarValue values[];
+   
+   //--- Try to get calendar values (USD events affect gold)
+   int count = CalendarValueHistory(values, fromTime, toTime, NULL, "USD");
+   
+   if(count <= 0)
+   {
+      //--- Calendar might not be available, return false to use fallback
+      return false;
+   }
+   
+   newsFilterActive = false;
+   nextNewsEvent = "";
+   nextNewsTime = 0;
+   
+   for(int i = 0; i < count; i++)
+   {
+      MqlCalendarEvent event;
+      if(!CalendarEventById(values[i].event_id, event))
+         continue;
+      
+      //--- Check if this is a high-impact event
+      if(event.importance != CALENDAR_IMPORTANCE_HIGH)
+         continue;
+      
+      //--- Check if event matches our filters
+      string eventName = event.name;
+      bool shouldFilter = false;
+      
+      //--- NFP (Non-Farm Payrolls)
+      if(InpFilterNFP && (StringFind(eventName, "Nonfarm") >= 0 || 
+                          StringFind(eventName, "Non-Farm") >= 0 ||
+                          StringFind(eventName, "NFP") >= 0 ||
+                          StringFind(eventName, "Employment Change") >= 0))
+      {
+         shouldFilter = true;
+      }
+      
+      //--- FOMC (Federal Reserve)
+      if(InpFilterFOMC && (StringFind(eventName, "FOMC") >= 0 || 
+                           StringFind(eventName, "Federal Funds Rate") >= 0 ||
+                           StringFind(eventName, "Fed Interest") >= 0 ||
+                           StringFind(eventName, "Powell") >= 0))
+      {
+         shouldFilter = true;
+      }
+      
+      //--- CPI (Consumer Price Index)
+      if(InpFilterCPI && (StringFind(eventName, "CPI") >= 0 || 
+                          StringFind(eventName, "Consumer Price") >= 0 ||
+                          StringFind(eventName, "Inflation") >= 0))
+      {
+         shouldFilter = true;
+      }
+      
+      //--- GDP
+      if(InpFilterGDP && (StringFind(eventName, "GDP") >= 0 ||
+                          StringFind(eventName, "Gross Domestic") >= 0))
+      {
+         shouldFilter = true;
+      }
+      
+      //--- Retail Sales
+      if(InpFilterRetailSales && StringFind(eventName, "Retail Sales") >= 0)
+      {
+         shouldFilter = true;
+      }
+      
+      //--- PMI
+      if(InpFilterPMI && (StringFind(eventName, "PMI") >= 0 ||
+                          StringFind(eventName, "Purchasing Manager") >= 0 ||
+                          StringFind(eventName, "ISM") >= 0))
+      {
+         shouldFilter = true;
+      }
+      
+      //--- Unemployment
+      if(InpFilterUnemployment && (StringFind(eventName, "Unemployment") >= 0 ||
+                                    StringFind(eventName, "Jobless") >= 0 ||
+                                    StringFind(eventName, "Initial Claims") >= 0))
+      {
+         shouldFilter = true;
+      }
+      
+      //--- Central Bank events
+      if(InpFilterCentralBank && (StringFind(eventName, "Central Bank") >= 0 ||
+                                   StringFind(eventName, "ECB") >= 0 ||
+                                   StringFind(eventName, "BOE") >= 0 ||
+                                   StringFind(eventName, "BOJ") >= 0 ||
+                                   StringFind(eventName, "RBA") >= 0 ||
+                                   StringFind(eventName, "Interest Rate") >= 0))
+      {
+         shouldFilter = true;
+      }
+      
+      if(shouldFilter)
+      {
+         datetime eventTime = values[i].time;
+         datetime bufferStart = eventTime - InpNewsMinutesBefore * 60;
+         datetime bufferEnd = eventTime + InpNewsMinutesAfter * 60;
+         
+         if(TimeCurrent() >= bufferStart && TimeCurrent() <= bufferEnd)
+         {
+            newsFilterActive = true;
+            nextNewsEvent = eventName;
+            nextNewsTime = eventTime;
+            
+            if(InpEnableDebugLogs)
+            {
+               Print("NEWS FILTER ACTIVE: ", eventName, " at ", TimeToString(eventTime));
+            }
+            return true;
+         }
+         
+         //--- Track next upcoming event
+         if(eventTime > TimeCurrent() && (nextNewsTime == 0 || eventTime < nextNewsTime))
+         {
+            nextNewsEvent = eventName;
+            nextNewsTime = eventTime;
+         }
+      }
+   }
+   
+   return true; // Calendar was available
+}
+
+//+------------------------------------------------------------------+
+//|  Fallback: Check for known scheduled events by day/time          |
+//+------------------------------------------------------------------+
+bool CheckScheduledEvents()
+{
+   newsFilterActive = false;
+   
+   MqlDateTime dt;
+   TimeToStruct(TimeGMT(), dt);
+   
+   //--- NFP: First Friday of each month at 13:30 GMT
+   if(InpFilterNFP && dt.day_of_week == 5 && dt.day <= 7)
+   {
+      if(IsNearTime(dt, 13, 30))
+      {
+         newsFilterActive = true;
+         nextNewsEvent = "NFP (Non-Farm Payrolls)";
+         return true;
+      }
+   }
+   
+   //--- CPI: Usually around 13:30 GMT on release day (mid-month)
+   if(InpFilterCPI && dt.day >= 10 && dt.day <= 15)
+   {
+      if(IsNearTime(dt, 13, 30))
+      {
+         newsFilterActive = true;
+         nextNewsEvent = "CPI Release (Scheduled)";
+         return true;
+      }
+   }
+   
+   //--- FOMC: Usually 19:00 GMT on decision days (8 times/year)
+   if(InpFilterFOMC)
+   {
+      //--- FOMC meetings are typically mid-week
+      if(dt.day_of_week >= 2 && dt.day_of_week <= 4)
+      {
+         if(IsNearTime(dt, 19, 0))
+         {
+            //--- This is approximate - real FOMC dates vary
+            newsFilterActive = true;
+            nextNewsEvent = "FOMC Decision (Possible)";
+            return true;
+         }
+      }
+   }
+   
+   //--- Unemployment Claims: Every Thursday at 13:30 GMT
+   if(InpFilterUnemployment && dt.day_of_week == 4)
+   {
+      if(IsNearTime(dt, 13, 30))
+      {
+         newsFilterActive = true;
+         nextNewsEvent = "Weekly Unemployment Claims";
+         return true;
+      }
+   }
+   
+   return false;
+}
+
+//+------------------------------------------------------------------+
+//|  Helper: Check if current time is near target time               |
+//+------------------------------------------------------------------+
+bool IsNearTime(MqlDateTime &dt, int targetHour, int targetMin)
+{
+   int currentMinutes = dt.hour * 60 + dt.min;
+   int targetMinutes = targetHour * 60 + targetMin;
+   
+   int diff = MathAbs(currentMinutes - targetMinutes);
+   
+   //--- Check if within buffer window
+   return (diff <= InpNewsMinutesBefore || diff <= InpNewsMinutesAfter);
+}
+
+//+------------------------------------------------------------------+
+//|  Get news filter status for dashboard                            |
+//+------------------------------------------------------------------+
+string GetNewsFilterStatus()
+{
+   if(!InpUseNewsFilter)
+      return "DISABLED";
+   
+   if(newsFilterActive)
+      return "BLOCKED: " + nextNewsEvent;
+   
+   if(nextNewsTime > 0)
+   {
+      int minutesUntil = (int)((nextNewsTime - TimeCurrent()) / 60);
+      if(minutesUntil > 0 && minutesUntil <= 120)
+         return "Next: " + IntegerToString(minutesUntil) + "m";
+   }
+   
+   return "CLEAR";
 }
 
 //+------------------------------------------------------------------+
@@ -1351,12 +1633,12 @@ void CreateDashboard()
    int yOffset = InpDashboardY;
    int lineHeight = 18;
    
-   //--- Background rectangle
+   //--- Background rectangle (increased height for news filter)
    ObjectCreate(0, prefix + "BG", OBJ_RECTANGLE_LABEL, 0, 0, 0);
    ObjectSetInteger(0, prefix + "BG", OBJPROP_XDISTANCE, InpDashboardX - 5);
    ObjectSetInteger(0, prefix + "BG", OBJPROP_YDISTANCE, InpDashboardY - 5);
-   ObjectSetInteger(0, prefix + "BG", OBJPROP_XSIZE, 280);
-   ObjectSetInteger(0, prefix + "BG", OBJPROP_YSIZE, 240);
+   ObjectSetInteger(0, prefix + "BG", OBJPROP_XSIZE, 300);
+   ObjectSetInteger(0, prefix + "BG", OBJPROP_YSIZE, 280);
    ObjectSetInteger(0, prefix + "BG", OBJPROP_BGCOLOR, clrBlack);
    ObjectSetInteger(0, prefix + "BG", OBJPROP_BORDER_COLOR, clrGold);
    ObjectSetInteger(0, prefix + "BG", OBJPROP_BORDER_TYPE, BORDER_FLAT);
@@ -1364,10 +1646,10 @@ void CreateDashboard()
    ObjectSetInteger(0, prefix + "BG", OBJPROP_BACK, false);
    
    //--- Create labels
-   CreateLabel(prefix + "Title", "XAUUSD RSI+S/R EA", InpDashboardX, yOffset, clrGold, 12);
+   CreateLabel(prefix + "Title", "XAUUSD RSI+S/R EA v1.1", InpDashboardX, yOffset, clrGold, 12);
    yOffset += lineHeight + 5;
    
-   CreateLabel(prefix + "Separator1", "-----------------------------", InpDashboardX, yOffset, clrDarkGray, 9);
+   CreateLabel(prefix + "Separator1", "--------------------------------", InpDashboardX, yOffset, clrDarkGray, 9);
    yOffset += lineHeight;
    
    CreateLabel(prefix + "RSI", "RSI: ---", InpDashboardX, yOffset, clrWhite, 10);
@@ -1385,7 +1667,7 @@ void CreateDashboard()
    CreateLabel(prefix + "ATR", "ATR: ---", InpDashboardX, yOffset, clrWhite, 10);
    yOffset += lineHeight;
    
-   CreateLabel(prefix + "Separator2", "-----------------------------", InpDashboardX, yOffset, clrDarkGray, 9);
+   CreateLabel(prefix + "Separator2", "--------------------------------", InpDashboardX, yOffset, clrDarkGray, 9);
    yOffset += lineHeight;
    
    CreateLabel(prefix + "DailyTrades", "Daily Trades: 0/" + IntegerToString(InpMaxTradesPerDay), InpDashboardX, yOffset, clrYellow, 10);
@@ -1400,7 +1682,11 @@ void CreateDashboard()
    CreateLabel(prefix + "Session", "Session: ---", InpDashboardX, yOffset, clrWhite, 10);
    yOffset += lineHeight;
    
-   CreateLabel(prefix + "Separator3", "-----------------------------", InpDashboardX, yOffset, clrDarkGray, 9);
+   //--- News Filter Status
+   CreateLabel(prefix + "NewsFilter", "News: ---", InpDashboardX, yOffset, clrWhite, 10);
+   yOffset += lineHeight;
+   
+   CreateLabel(prefix + "Separator3", "--------------------------------", InpDashboardX, yOffset, clrDarkGray, 9);
    yOffset += lineHeight;
    
    CreateLabel(prefix + "Status", "Status: READY", InpDashboardX, yOffset, clrLime, 10);
@@ -1454,6 +1740,19 @@ void UpdateDashboard()
    ObjectSetString(0, prefix + "Session", OBJPROP_TEXT, "Session: " + (inSession ? "ACTIVE" : "CLOSED"));
    ObjectSetInteger(0, prefix + "Session", OBJPROP_COLOR, inSession ? clrLime : clrRed);
    
+   //--- Update News Filter Status
+   string newsStatus = GetNewsFilterStatus();
+   color newsColor = clrLime;
+   if(StringFind(newsStatus, "BLOCKED") >= 0)
+      newsColor = clrRed;
+   else if(StringFind(newsStatus, "Next:") >= 0)
+      newsColor = clrYellow;
+   else if(StringFind(newsStatus, "DISABLED") >= 0)
+      newsColor = clrGray;
+   
+   ObjectSetString(0, prefix + "NewsFilter", OBJPROP_TEXT, "News: " + newsStatus);
+   ObjectSetInteger(0, prefix + "NewsFilter", OBJPROP_COLOR, newsColor);
+   
    //--- Update Status
    string status = "READY";
    color statusColor = clrLime;
@@ -1462,6 +1761,11 @@ void UpdateDashboard()
    {
       status = "MAX DAILY TRADES";
       statusColor = clrOrange;
+   }
+   else if(newsFilterActive && InpUseNewsFilter)
+   {
+      status = "NEWS FILTER";
+      statusColor = clrRed;
    }
    else if(spread > InpMaxSpread)
    {
