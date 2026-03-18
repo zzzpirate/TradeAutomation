@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import PerformanceKPIs from './components/PerformanceKPIs';
@@ -12,9 +13,12 @@ import Testimonials from './components/Testimonials';
 import FAQ from './components/FAQ';
 import Footer from './components/Footer';
 import FloatingStats from './components/FloatingStats';
+import LiveDemo from './components/LiveDemo';
 import './index.css';
 
 function App() {
+  const [showDemo, setShowDemo] = useState(false);
+
   return (
     <div className="min-h-screen bg-[#020617] text-white overflow-x-hidden">
       {/* Navigation */}
@@ -23,7 +27,7 @@ function App() {
       {/* Main Content */}
       <main>
         {/* Hero Section */}
-        <Hero />
+        <Hero onOpenDemo={() => setShowDemo(true)} />
         
         {/* Performance KPIs */}
         <PerformanceKPIs />
@@ -58,6 +62,13 @@ function App() {
       
       {/* Floating Stats Widget */}
       <FloatingStats />
+
+      {/* Live Demo Modal */}
+      <AnimatePresence>
+        {showDemo && (
+          <LiveDemo onClose={() => setShowDemo(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

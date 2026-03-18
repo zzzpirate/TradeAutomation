@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, Shield, Activity, Zap, ArrowRight, ChevronDown } from 'lucide-react';
+import { TrendingUp, Shield, Activity, Zap, ArrowRight, ChevronDown, Play } from 'lucide-react';
 
-const Hero = () => {
+const Hero = ({ onOpenDemo }) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Effects */}
@@ -136,7 +136,16 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="flex flex-wrap justify-center gap-4"
         >
-          <a href="#performance" className="btn-primary flex items-center gap-2">
+          {/* Primary CTA - View Demo */}
+          <button 
+            onClick={onOpenDemo}
+            data-testid="view-demo-btn"
+            className="btn-primary flex items-center gap-2 animate-pulse-gold"
+          >
+            <Play size={18} />
+            View Live Demo
+          </button>
+          <a href="#performance" className="btn-secondary flex items-center gap-2">
             <TrendingUp size={18} />
             View Performance
           </a>
